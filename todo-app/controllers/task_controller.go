@@ -8,14 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateTask handles POST /tasks
 func CreateTask(c *gin.Context) {
 	var task models.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	config.DB.Create(&task)
-	c.JSON(http.StatusOK, task)
+
+	if err := config.DB.Create(&task).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, task)
 }
 
 func GetTasks(c *gin.Context) {
